@@ -1,0 +1,8 @@
+CREATE TABLE movimentProductes (
+idMoviment int PRIMARY KEY AUTO_INCREMENT,
+idProducte int,
+data date,
+quantitat float,
+preu float,
+FOREIGN KEY (idProducte) REFERENCES productes(idProducte)
+);
