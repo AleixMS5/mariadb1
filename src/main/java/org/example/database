@@ -6,3 +6,12 @@ quantitat float,
 preu float,
 FOREIGN KEY (idProducte) REFERENCES productes(idProducte)
 );
+
+CREATE TABLE Productes (
+
+idProducte int PRIMARY KEY AUTO_INCREMENT,
+data date,
+quantitat float,
+preu float,
+FOREIGN KEY (idProducte) REFERENCES productes(idProducte)
+);

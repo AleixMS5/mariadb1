@@ -10,12 +10,54 @@ import static org.example.Main.sc;
 
 public class moviments {
 
+    public static ArrayList<Moviment> recuperaMoviments() throws SQLException {
+        Connection con;
+        String sentenciaSQL = ("SELECT * from movimentProductes where quantitat");
+        con = conexio();
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(sentenciaSQL);
+        ArrayList<Moviment> moviments = new ArrayList<>();
+
+
+        while (rs.next()) {
+            Moviment mov =new Moviment( Integer.parseInt( rs.getString("idProducte")),rs.getString("data"),Float.parseFloat(rs.getString("quantitat")),Float.parseFloat(rs.getString("preu")));
+            moviments.add(mov);
+
+        }
+
+
+        return moviments;
+    }
+
+    public static ArrayList<Moviment> recuperaMovimentsperIdproducte(String str) throws SQLException {
+
+
+        Connection con;
+        String sentenciaSQL = MessageFormat.format("SELECT * from movimentProductes INNER JOIN productes on movimentProductes.idProducte=productes.idProducte  where productes.idProducte={0};", str);
+        con = conexio();
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(sentenciaSQL);
+        ArrayList<Moviment> moviments = new ArrayList<>();
+
+
+        while (rs.next()) {
+            Moviment mov =new Moviment( Integer.parseInt( rs.getString("idProducte")),rs.getString("data"),Float.parseFloat(rs.getString("quantitat")),Float.parseFloat(rs.getString("preu")),rs.getString("nom"));
+            moviments.add(mov);
+
+        }
+
+
+        return moviments;
+
+    }
     public static void main(String[] args) throws SQLException {
         Float preu;
         String date;
         int idProducte;
         float quantitat;
+        float quantitatVenuts =0;
         int idMoviment;
+        float preuTotal=0;
         String sentenciaSQL;
         Connection con;
         Statement stmt;
@@ -51,16 +93,16 @@ public class moviments {
                     }
 
                 }
-                System.out.println("digues la data del moviment en format DD-MM-YYYY");
+                System.out.println("digues la data del moviment en format yyy-mm-dd");
                 while (true) {
                     try {
                         date = sc.nextLine();
-                        if (date.split("-")[0].length() != 4 && date.split("-")[1].length() != 2 && date.split("-")[2].length() != 2) {
+                        if (date.split("-")[0].length() != 4 || date.split("-")[1].length() != 2 || date.split("-")[2].length() != 2) {
                             throw new Exception();
                         }
                         break;
                     } catch (Exception ex) {
-                        System.out.println("per favor pose la data en format DD-MM-YYYY");
+                        System.out.println("per favor pose la data en format yyy-mm-dd");
                     }
 
                 }
@@ -122,16 +164,16 @@ public class moviments {
                     }
 
                 }
-                System.out.println("digues la data del moviment en format DD-MM-YYYY");
+                System.out.println("digues la data del moviment en format yyy-mm-dd");
                 while (true) {
                     try {
                         date = sc.nextLine();
-                        if (date.split("-")[0].length() != 4 && date.split("-")[1].length() != 2 && date.split("-")[2].length() != 2) {
+                        if (date.split("-")[0].length() != 4 || date.split("-")[1].length() != 2 || date.split("-")[2].length() != 2) {
                             throw new Exception();
                         }
                         break;
                     } catch (Exception ex) {
-                        System.out.println("per favor pose la data en format DD-MM-YYYY");
+                        System.out.println("per favor pose la data en format yyy-mm-dd");
                     }
 
                 }
@@ -183,7 +225,7 @@ public class moviments {
                 con = conexio();
                 stmt = con.createStatement();
                 ResultSet rs = stmt.executeQuery(sentenciaSQL);
-                float preuTotal1 = 0;
+                preuTotal = 0;
                 float estoc1 = 0;
                 float mitja=0;
 
@@ -191,9 +233,9 @@ public class moviments {
                     idProducte = Integer.parseInt(rs.getString("idProducte"));
 
                     estoc1 += Float.parseFloat(rs.getString("quantitat"));
-                    preuTotal1 = 0;
-                    preuTotal1 += Float.parseFloat(rs.getString("quantitat"));
-                    mitja += preuTotal1 / estoc1;
+                    preuTotal = 0;
+                    preuTotal += Float.parseFloat(rs.getString("quantitat"));
+                    mitja += preuTotal / estoc1;
 
 
                 }
@@ -202,15 +244,13 @@ public class moviments {
                 break;
             case ("4"):
                 List<String> listaid = new ArrayList<>();
-
-                sentenciaSQL = ("SELECT * from movimentProductes");
-                con = conexio();
-                stmt = con.createStatement();
-                rs = stmt.executeQuery(sentenciaSQL);
+                ArrayList<Moviment> movimentstots= recuperaMoviments();
 
 
-                while (rs.next()) {
-                    idProducte = Integer.parseInt(rs.getString("idProducte"));
+                for (int i = 0; i < movimentstots.size(); i++) {
+
+
+                    idProducte = movimentstots.get(i).getIdProducte();
                     if (!listaid.contains(String.valueOf(idProducte))){
                     listaid.add(String.valueOf(idProducte));}
 
@@ -219,25 +259,33 @@ public class moviments {
                 }
 
                 for (String str : listaid) {
-                    sentenciaSQL = MessageFormat.format("SELECT * from movimentProductes where idProducte={0};", str);
-                    con = conexio();
-                    stmt = con.createStatement();
 
-                    rs = stmt.executeQuery(sentenciaSQL);
-
+                    ArrayList<Moviment> moviments= recuperaMovimentsperIdproducte(str);
+                    String nom="";
                     estoc1 = 0;
                     mitja=0;
-                    while (rs.next()) {
-                        idProducte = Integer.parseInt(rs.getString("idProducte"));
+                    preuTotal = 0;
+                    quantitatVenuts=0;
 
-                        estoc1 += Float.parseFloat(rs.getString("quantitat"));
-                        preuTotal1 = 0;
-                        preuTotal1 += Float.parseFloat(rs.getString("quantitat"));
-                        mitja += preuTotal1 / estoc1;
+                    for (int i = 0; i < moviments.size() ; i++) {
+                        nom=moviments.get(i).getNom();
+                        idProducte = moviments.get(i).getIdProducte();
+
+                        estoc1 += moviments.get(i).getQuantitat();
+
+                        if(moviments.get(i).getQuantitat()>0){
+                            preuTotal+=moviments.get(i).getQuantitat()*moviments.get(i).getPreu();
+                            quantitatVenuts+=moviments.get(i).getQuantitat();
+                        }
+
+
+
 
 
                     }
-                    registre = MessageFormat.format("Producte id: {0}, estoc: {1}, preumitja: {2} euros.", str,estoc1 ,mitja );
+                    mitja=  preuTotal/quantitatVenuts;
+
+                    registre = MessageFormat.format("Producte id: {0}, estoc: {1}, preumitja: {2} euros., nom: {3}", str,estoc1 ,mitja,nom );
                     System.out.println(registre);
                 } break;
             case("5"):
@@ -252,7 +300,7 @@ public class moviments {
                     idMoviment= Integer.parseInt(rs.getString("idMoviment"));
                     quantitat=Float.valueOf(rs.getString("quantitat"));
                     idProducte = Integer.parseInt(rs.getString("idProducte"));
-                     registre = MessageFormat.format("Producte id: {0}, moviment: {1}, preu: {2} euros , data: {3}, quantitat: {4}.", idProducte, idMoviment, preu,date,quantitat);
+                     registre = MessageFormat.format("Producte id: {0}, moviment: {1}, preu: {2} euros , data: {3}, quantitat: {4} .", idProducte, idMoviment, preu,date,quantitat);
                     System.out.println(registre);
                 }
                 break;
