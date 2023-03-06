@@ -10,8 +10,23 @@ FOREIGN KEY (idProducte) REFERENCES productes(idProducte)
 CREATE TABLE Productes (
 
 idProducte int PRIMARY KEY AUTO_INCREMENT,
-data date,
 quantitat float,
 preu float,
 FOREIGN KEY (idProducte) REFERENCES productes(idProducte)
+);
+
+
+CREATE TABLE llistatMaterials(
+idMaterial int PRIMARY KEY AUTO_INCREMENT,
+idProducte int,
+producteFabricat int,
+quantitat float,
+FOREIGN KEY (idProducte) REFERENCES productes(idProducte),
+FOREIGN KEY (producteFabricat) REFERENCES ProductesFabricats(idProducteFabricat)
+);
+
+
+CREATE TABLE ProductesFabricats (
+idProducteFabricat int PRIMARY KEY AUTO_INCREMENT,
+nom varchar(50)
 );
